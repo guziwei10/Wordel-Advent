@@ -1,0 +1,52 @@
+on: workflow_dispatch
+name: Repo Checks
+jobs:
+  remove_old_artifacts:
+    runs-on: self-hosted
+    timeout-minutes: 3
+    steps:
+    - name: Remove old artifacts
+      uses: c-hive/gha-remove-artifacts@v1
+      with:
+        age: '0 seconds' # parsed by Moment.js
+        skip-tags: false
+        skip-recent: 0
+  
+  check_allowed_files:
+    needs: remove_old_artifacts
+    runs-on: self-hosted
+    container:
+      image: ghcr.io/sta663-sp23/sta663-base:latest
+    timeout-minutes: 3
+    steps:
+    - name: Checkout
+      uses: actions/checkout@master
+      
+    - name: Check Files
+      run: |
+        checklist::quit_on_failure({
+          checklist::check_allowed_files(
+            c("hw4.ipynb", "README.*", "data/*", "nyc_parking_ticket.jpg")
+          )
+        })
+      shell: Rscript {0}
+  
+  check_renders:
+    needs: check_allowed_files
+    runs-on: self-hosted
+    container:
+      image: ghcr.io/sta663-sp23/sta663-base:latest
+    timeout-minutes: 60
+    steps:
+    - name: Checkout
+      uses: actions/checkout@master
+    
+    - name: Check Renders
+      run: |
+        quarto render hw4.ipynb --execute --to html --embed-resources
+    
+    - name: Archive html
+      uses: actions/upload-artifact@master
+      with:
+        name: html
+        path: hw4.html

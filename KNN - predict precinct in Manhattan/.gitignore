@@ -1,0 +1,12 @@
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+*.html
+*.rds
+*.Rproj
+.ipynb_checkpoints/*
+.jupyter/
+.Rdata
+.httr-oauth
+.DS_Store
